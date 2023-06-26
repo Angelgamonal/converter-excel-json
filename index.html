@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Read Excel file</title>
+
+		<style>
+			.box {
+				max-width: 800px;
+				width: 100%;
+				margin: auto;
+				display: flex;
+				flex-direction: column;
+				gap: 1em;
+			}
+			button {
+				width: 200px;
+				padding: 1em;
+				background: #000;
+				color: #fff;
+				margin: auto;
+				cursor: pointer;
+			}
+		</style>
+
+		<script src="https://unpkg.com/read-excel-file@4.1.0/bundle/read-excel-file.min.js"></script>
+	</head>
+
+	<body>
+		<div class="box">
+			<h2>Excel to JSON converter</h2>
+
+			<input type="file" name="" id="input" />
+
+			<textarea name="json-data" id="json-data" cols="30" rows="10"></textarea>
+
+			<button id="dl-json">Download JSON</button>
+
+			<script>
+				var input = document.getElementById('input');
+
+				input.addEventListener('change', () => {
+					console.log('input->', input.files[0]);
+
+					readXlsxFile(input.files[0]).then((data) => {
+						var i = 0;
+						var headers = [];
+						var json_object = [];
+
+						data.map((row, index) => {
+							if (i == 0) {
+								headers = row;
+							}
+
+							if (i > 0) {
+								var temp = {};
+								for (var x = 0; x < row.length; x++) {
+									temp[headers[x]] = row[x];
+								}
+								json_object.push(temp);
+							}
+							i++;
+						});
+
+						document.getElementById('json-data').value = JSON.stringify(
+							json_object,
+							null,
+							2
+						);
+					});
+				});
+
+				document.querySelector('#dl-json').onclick = () => {
+					const json_string = document.getElementById('json-data').value;
+
+					downloadObjectAsJson(json_string, 'excel_to');
+				};
+
+				const downloadObjectAsJson = (str, filename) => {
+					var data_str =
+						'data:text/json;charset=utf-8,' + encodeURIComponent(str);
+					var anchor = document.createElement('a');
+					anchor.setAttribute('href', data_str);
+					anchor.setAttribute('download', filename + '.json');
+
+					document.body.appendChild(anchor);
+					anchor.click();
+					anchor.remove();
+				};
+			</script>
+		</div>
+	</body>
+</html>
