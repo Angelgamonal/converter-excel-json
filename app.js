@@ -3,8 +3,6 @@ const jsonTextArea = document.getElementById('json-data');
 const downloadButton = document.querySelector('#dl-json');
 let loadingTag = document.querySelector('#isLoading');
 
-loadingTag.style.display = 'none';
-
 inputContainer.addEventListener('change', () => {
 	const file = inputContainer.files[0];
 	if (file) {
@@ -14,7 +12,7 @@ inputContainer.addEventListener('change', () => {
 
 downloadButton.addEventListener('click', () => {
 	const jsonString = jsonTextArea.value;
-	console.log('jsonString->', jsonString);
+
 	downloadObjectAsJson(jsonString, 'excel_to');
 });
 
@@ -26,7 +24,7 @@ const getExcelRows = async (fileData, startNumber = 0, batchSize = 100) => {
 		const data = await readXlsxFile(fileData);
 
 		const headers = data[0];
-		const json_object = [];
+		const resultArray = [];
 
 		for (let i = startNumber + 1; i < data.length; i++) {
 			const row = data[i];
@@ -34,21 +32,20 @@ const getExcelRows = async (fileData, startNumber = 0, batchSize = 100) => {
 			for (let j = 0; j < headers.length; j++) {
 				temp[headers[j]] = row[j];
 			}
-			json_object.push(temp);
+			resultArray.push(temp);
 
 			// Procesamiento por lotes
 			if ((i - startNumber) % batchSize === 0) {
-				await processBatch(json_object);
-				json_object.length = 0; // Vaciar el arreglo
+				await processBatch(resultArray);
 			}
 		}
 
 		// Procesar las filas restantes
-		await processBatch(json_object);
+		await processBatch(resultArray);
+
+		jsonTextArea.value = JSON.stringify(resultArray, null, 2);
+
 		loadingTag.style.display = 'none';
-
-		jsonTextArea.value = JSON.stringify(json_object, null, 2);
-
 		jsonTextArea.style.display = 'initial';
 	} catch (error) {
 		console.log('Error->', error);
